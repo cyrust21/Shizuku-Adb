@@ -1,0 +1,65 @@
+name: Build C++ Native (via Gradle)
+
+on:
+  push:
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          dependency-graph: generate-and-submit
+
+      - name: Build C++ Native Libs (Release Mode)
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          echo 'android.sdk.channel=3' >> gradle.properties
+          
+          # Memicu kompilasi C++ mode Release tanpa validasi APK Keystore
+          ./gradlew externalNativeBuildRelease
+
+      - name: Extract Native Binaries (C++)
+        run: |
+          mkdir -p native_output
+          
+          # Mencari semua file .so (termasuk libffxstarter.so dan libadb.so) di folder build
+          # dan mengelompokkannya secara otomatis berdasarkan arsitekturnya (arm64-v8a, armeabi-v7a, dll)
+          find . -type f -name "*.so" -path "*/build/intermediates/*" | while read -r file; do
+            abi=$(echo "$file" | grep -oE '(arm64-v8a|armeabi-v7a|x86_64|x86)' | head -n 1)
+            filename=$(basename "$file")
+            
+            if [ -n "$abi" ]; then
+              mkdir -p "native_output/$abi"
+              cp "$file" "native_output/$abi/$filename"
+            else
+              cp "$file" "native_output/$filename"
+            fi
+          done
+
+      - name: Upload Native C++ Only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          # Mengubah nama hasil download di GitHub Actions menjadi FFX
+          name: ffx-native-binaries
+          path: native_output/
+          compression-level: 9
+          
