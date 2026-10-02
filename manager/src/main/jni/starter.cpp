@@ -31,9 +31,11 @@
 #define EXIT_FATAL_KILL 9
 #define EXIT_FATAL_BINDER_BLOCKED_BY_SELINUX 10
 
-#define PACKAGE_NAME "moe.shizuku.privileged.api"
-#define SERVER_NAME "shizuku_server"
-#define SERVER_CLASS_PATH "rikka.shizuku.server.ShizukuService"
+// Updated Package Name and Server Names to avoid conflicts
+#define PACKAGE_NAME "com.cyrust.fftoolspromaxnew"
+#define SERVER_NAME "ffx_server"
+#define SERVER_CLASS_PATH "com.cyrust.fftoolspromaxnew.server.FfxService"
+
 
 #if defined(__arm__)
 #define ABI "arm"
@@ -98,7 +100,8 @@ v_current = (uintptr_t) v + v_size - sizeof(char *); \
     ARG(argv)
     ARG_PUSH(argv, "/system/bin/app_process")
     ARG_PUSH_FMT(argv, "-Djava.class.path=%s", dex_path)
-    ARG_PUSH_FMT(argv, "-Dshizuku.library.path=%s", lib_path)
+    // Updated property name
+    ARG_PUSH_FMT(argv, "-Dffx.library.path=%s", lib_path)
     ARG_PUSH_DEBUG_VM_PARAMS(argv)
     ARG_PUSH(argv, "/system/bin")
     ARG_PUSH_FMT(argv, "--nice-name=%s", process_name)
@@ -134,8 +137,9 @@ static void start_server(const char *path, const char *main_class, const char *p
             run_server(path, main_class, process_name);
         }
         default: {
-            printf("info: shizuku_server pid is %d\n", pid);
-            printf("info: shizuku_starter exit with 0\n");
+            // Updated log message
+            printf("info: ffx_server pid is %d\n", pid);
+            printf("info: ffx_starter exit with 0\n");
             exit(EXIT_SUCCESS);
         }
     }
@@ -191,7 +195,8 @@ int main(int argc, char *argv[]) {
 
     uid_t uid = getuid();
     if (uid != 0 && uid != 2000) {
-        perrorf("fatal: run Shizuku from non root nor adb user (uid=%d).\n", uid);
+        // Updated error message
+        perrorf("fatal: run FFX from non root nor adb user (uid=%d).\n", uid);
         exit(EXIT_FATAL_UID);
     }
 
@@ -242,7 +247,8 @@ int main(int argc, char *argv[]) {
         if (kill(pid, SIGKILL) == 0)
             printf("info: killed %d (%s)\n", pid, name);
         else if (errno == EPERM) {
-            perrorf("fatal: can't kill %d, please try to stop existing Shizuku from app first.\n", pid);
+            // Updated error message
+            perrorf("fatal: can't kill %d, please try to stop existing FFX from app first.\n", pid);
             exit(EXIT_FATAL_KILL);
         } else {
             printf("warn: failed to kill %d (%s)\n", pid, name);
