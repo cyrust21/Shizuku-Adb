@@ -43,7 +43,7 @@ jobs:
           # Mencari semua file .so (termasuk libffxstarter.so dan libadb.so) di folder build
           # dan mengelompokkannya secara otomatis berdasarkan arsitekturnya (arm64-v8a, armeabi-v7a, dll)
           find . -type f -name "*.so" -path "*/build/intermediates/*" | while read -r file; do
-            abi=$(echo "$file" | grep -oE '(arm64-v8a|armeabi-v7a|x86_64|x86)' | head -n 1)
+            abi=$(echo "$file" | grep -oE '(arm64-v8a)' | head -n 1)
             filename=$(basename "$file")
             
             if [ -n "$abi" ]; then
